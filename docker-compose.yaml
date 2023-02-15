@@ -1,0 +1,101 @@
+version: "3.7"
+
+services:
+  rest_api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        - APP_PATH=./cmd/api/
+    restart: always
+    env_file:
+      - .env.docker
+    networks:
+      - backend
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8088:8088"
+
+  postgres:
+    image: postgres:13-alpine
+    restart: always
+    networks:
+      - backend
+    environment:
+      POSTGRES_DB: echo_rest_api
+      POSTGRES_USER: world
+      POSTGRES_PASSWORD: hello
+    volumes:
+      - type: bind
+        source: ./3rd-parties/postgres-scripts
+        target: /docker-entrypoint-initdb.d/
+    ports:
+      - "5432:5432"
+
+  kratos:
+    image: oryd/kratos:v0.9.0-alpha.3
+    networks:
+      - backend
+    depends_on:
+      - postgres
+      - kratos-migrate
+    environment:
+      - DSN=postgres://world:hello@postgres:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - type: bind
+        source: ./3rd-parties/kratos
+        target: /etc/config/kratos
+    command: serve -c /etc/config/kratos/kratos.yml --sqa-opt-out --dev
+    ports:
+      - "4433:4433"
+
+  kratos-migrate:
+    image: oryd/kratos:v0.9.0-alpha.3
+    environment:
+      - DSN=postgres://world:hello@postgres:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    networks:
+      - backend
+    depends_on:
+      - postgres
+    volumes:
+      - type: bind
+        source: ./3rd-parties/kratos
+        target: /etc/config/kratos
+    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+
+  kratos-selfservice-ui-node:
+    image: oryd/kratos-selfservice-ui-node:latest
+    links:
+      - "kratos:echo-rest.local"
+    environment:
+      - KRATOS_PUBLIC_URL=http://echo-rest.local:4433
+      - PORT=4455
+      - BASE_PATH=/
+    networks:
+      - backend
+    depends_on:
+      - kratos
+    ports:
+      - "4455:4455"
+    restart: on-failure
+
+  mailslurper:
+    image: oryd/mailslurper:latest-smtps
+    networks:
+      - backend
+    ports:
+      - "4437:4437"
+      - "4436:4436"
+
+  redis:
+    image: redis:latest
+    networks:
+      - backend
+    ports:
+      - "6379:6379"
+
+networks:
+  backend:
+    driver: bridge
