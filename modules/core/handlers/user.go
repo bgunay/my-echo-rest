@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dzungtran/echo-rest-api/modules/core/domains"
-	"github.com/dzungtran/echo-rest-api/modules/core/dto"
-	"github.com/dzungtran/echo-rest-api/modules/core/usecases"
-	"github.com/dzungtran/echo-rest-api/pkg/authz"
-	"github.com/dzungtran/echo-rest-api/pkg/constants"
-	"github.com/dzungtran/echo-rest-api/pkg/middlewares"
-	"github.com/dzungtran/echo-rest-api/pkg/utils"
-	"github.com/dzungtran/echo-rest-api/pkg/wrapper"
+	"github.com/bgunay/my-echo-rest/modules/core/domains"
+	"github.com/bgunay/my-echo-rest/modules/core/dto"
+	"github.com/bgunay/my-echo-rest/modules/core/usecases"
+	"github.com/bgunay/my-echo-rest/pkg/authz"
+	"github.com/bgunay/my-echo-rest/pkg/constants"
+	"github.com/bgunay/my-echo-rest/pkg/middlewares"
+	"github.com/bgunay/my-echo-rest/pkg/utils"
+	"github.com/bgunay/my-echo-rest/pkg/wrapper"
 	"github.com/labstack/echo/v4"
 )
 
